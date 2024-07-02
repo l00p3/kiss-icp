@@ -36,6 +36,10 @@ namespace kiss_icp {
 struct VoxelHashMap {
     using Voxel = Eigen::Vector3i;
     struct VoxelBlock {
+        VoxelBlock(const std::vector<Eigen::Vector3d> &points_, const int num_points)
+            : points(points_), num_points_(num_points) {
+            points.reserve(static_cast<size_t>(num_points));
+        }
         // buffer of points with a max limit of n_points
         std::vector<Eigen::Vector3d> points;
         int num_points_;
