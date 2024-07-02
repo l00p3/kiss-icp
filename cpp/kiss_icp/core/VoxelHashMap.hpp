@@ -29,6 +29,7 @@
 #include <tsl/robin_map.h>
 
 #include <Eigen/Core>
+#include <list>
 #include <sophus/se3.hpp>
 #include <vector>
 
@@ -36,12 +37,8 @@ namespace kiss_icp {
 struct VoxelHashMap {
     using Voxel = Eigen::Vector3i;
     struct VoxelBlock {
-        VoxelBlock(const std::vector<Eigen::Vector3d> &points_, const int num_points)
-            : points(points_), num_points_(num_points) {
-            points.reserve(static_cast<size_t>(num_points));
-        }
         // buffer of points with a max limit of n_points
-        std::vector<Eigen::Vector3d> points;
+        std::list<Eigen::Vector3d> points;
         int num_points_;
         inline void AddPoint(const Eigen::Vector3d &point) {
             if (points.size() < static_cast<size_t>(num_points_)) points.push_back(point);
