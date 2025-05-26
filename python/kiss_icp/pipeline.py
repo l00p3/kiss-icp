@@ -43,7 +43,6 @@ class OdometryPipeline:
         self,
         dataset,
         config: Optional[Path] = None,
-        deskew: Optional[bool] = False,
         max_range: Optional[float] = None,
         visualize: bool = False,
         n_scans: int = -1,
@@ -58,7 +57,7 @@ class OdometryPipeline:
         self._last = self._jump + self._n_scans
 
         # Config and output dir
-        self.config = load_config(config, deskew=deskew, max_range=max_range)
+        self.config = load_config(config, max_range=max_range)
         self.results_dir = None
 
         # Pipeline
@@ -100,7 +99,7 @@ class OdometryPipeline:
     # Private interface  ------
     def _run_pipeline(self):
         for idx in get_progress_bar(self._first, self._last):
-            raw_frame, timestamps = self._next(idx)
+            raw_frame, timestamps = self._dataset[idx]
             start_time = time.perf_counter_ns()
             source, keypoints = self.odometry.register_frame(raw_frame, timestamps)
             self.poses[idx - self._first] = self.odometry.last_pose
@@ -114,16 +113,6 @@ class OdometryPipeline:
                 self.odometry,
                 self._vis_infos,
             )
-
-    def _next(self, idx):
-        """TODO: re-arrange this logic"""
-        dataframe = self._dataset[idx]
-        try:
-            frame, timestamps = dataframe
-        except ValueError:
-            frame = dataframe
-            timestamps = np.zeros(frame.shape[0])
-        return frame, timestamps
 
     @staticmethod
     def save_poses_kitti_format(filename: str, poses: np.ndarray):

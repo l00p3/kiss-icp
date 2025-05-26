@@ -112,12 +112,11 @@ OdometryServer::OdometryServer(const rclcpp::NodeOptions &options)
 
     // Initialize publishers
     rclcpp::QoS qos((rclcpp::SystemDefaultsQoS().keep_last(1).durability_volatile()));
-    odom_publisher_ = create_publisher<nav_msgs::msg::Odometry>("/kiss/odometry", qos);
+    odom_publisher_ = create_publisher<nav_msgs::msg::Odometry>("kiss/odometry", qos);
     if (publish_debug_clouds_) {
-        frame_publisher_ = create_publisher<sensor_msgs::msg::PointCloud2>("/kiss/frame", qos);
-        kpoints_publisher_ =
-            create_publisher<sensor_msgs::msg::PointCloud2>("/kiss/keypoints", qos);
-        map_publisher_ = create_publisher<sensor_msgs::msg::PointCloud2>("/kiss/local_map", qos);
+        frame_publisher_ = create_publisher<sensor_msgs::msg::PointCloud2>("kiss/frame", qos);
+        kpoints_publisher_ = create_publisher<sensor_msgs::msg::PointCloud2>("kiss/keypoints", qos);
+        map_publisher_ = create_publisher<sensor_msgs::msg::PointCloud2>("kiss/local_map", qos);
     }
 
     // Initialize the transform broadcaster
@@ -200,7 +199,10 @@ void OdometryServer::PublishClouds(const std::vector<Eigen::Vector3d> frame,
 
     frame_publisher_->publish(std::move(EigenToPointCloud2(frame, header)));
     kpoints_publisher_->publish(std::move(EigenToPointCloud2(keypoints, header)));
-    map_publisher_->publish(std::move(EigenToPointCloud2(kiss_map, kiss_pose, header)));
+
+    auto local_map_header = header;
+    local_map_header.frame_id = lidar_odom_frame_;
+    map_publisher_->publish(std::move(EigenToPointCloud2(kiss_map, local_map_header)));
 }
 }  // namespace kiss_icp_ros
 
